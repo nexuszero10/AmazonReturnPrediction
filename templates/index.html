@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Return Prediction - Gradient Boosting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coral: { 500: '#FF7F50', 600: '#FF6347' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen font-sans antialiased selection:bg-coral-500 selection:text-zinc-950">
+
+    <header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-coral-500 text-zinc-950 rounded-lg font-bold text-xl tracking-wider">AMZ</div>
+                <span class="text-xl font-bold text-white">Return<span class="text-yellow-400">Predictor</span></span>
+            </div>
+            <nav class="flex space-x-6 text-sm text-zinc-400">
+                <a href="#features-section" class="hover:text-yellow-400 transition-colors">Fitur Utama</a>
+                <a href="#prediction-section" class="hover:text-coral-500 transition-colors">Mulai Prediksi</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-12 space-y-16">
+        
+        <section class="text-center max-w-3xl mx-auto space-y-4">
+            <span class="px-3 py-1 text-xs text-blue-400 uppercase bg-blue-950/50 border border-blue-800/60 rounded-full tracking-wider font-semibold">
+                Gradient Boosting Classifier Pipeline
+            </span>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                Prediksi Pengembalian Produk <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-coral-500">E-Commerce</span>
+            </h1>
+        </section>
+
+        <section id="features-section" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="p-6 bg-zinc-900 border border-zinc-800/80 rounded-xl hover:border-blue-500/40 transition-colors group">
+                <div class="text-blue-400 font-bold text-lg group-hover:text-blue-300 transition-colors">$ Financial & Pricing</div>
+                <p class="text-zinc-400 text-sm mt-2 leading-relaxed">Analisis korelasi harga barang, persentase diskon, dan harga akhir konsumen.</p>
+            </div>
+            <div class="p-6 bg-zinc-900 border border-zinc-800/80 rounded-xl hover:border-yellow-500/40 transition-colors group">
+                <div class="text-yellow-400 font-bold text-lg group-hover:text-yellow-300 transition-colors">★ Customer Feedback</div>
+                <p class="text-zinc-400 text-sm mt-2 leading-relaxed">Tingkat kepuasan produk berdasarkan rating dan jumlah ulasan komunitas.</p>
+            </div>
+            <div class="p-6 bg-zinc-900 border border-zinc-800/80 rounded-xl hover:border-coral-500/40 transition-colors group">
+                <div class="text-coral-500 font-bold text-lg group-hover:text-coral-400 transition-colors">📦 Logistics & Stock</div>
+                <p class="text-zinc-400 text-sm mt-2 leading-relaxed">Estimasi hari pengiriman serta volume ketersediaan barang di gudang.</p>
+            </div>
+            <div class="p-6 bg-zinc-900 border border-zinc-800/80 rounded-xl hover:border-zinc-500/40 transition-colors group">
+                <div class="text-zinc-200 font-bold text-lg group-hover:text-white transition-colors">🛡️ Demographics & Platform</div>
+                <p class="text-zinc-400 text-sm mt-2 leading-relaxed">Pengaruh subkategori, wilayah penjualan, jenis perangkat, dan opsi pembayaran.</p>
+            </div>
+        </section>
+
+        <section id="prediction-section" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-5xl mx-auto shadow-xl">
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-white tracking-tight">Kalkulator Pipeline Data</h2>
+                <p class="text-zinc-400 text-xs mt-1">Isi formulir parameter di bawah untuk memproses kalkulasi transformasi matrix (56 Fitur).</p>
+            </div>
+
+            <form id="predictionForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Category</label>
+                    <div class="relative">
+                        <select name="category" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none appearance-none cursor-pointer transition-all">
+                            <option value="Beauty">Beauty</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Home">Home</option>
+                            <option value="Clothing">Clothing</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Subcategory</label>
+                    <div class="relative">
+                        <select name="subcategory" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none appearance-none cursor-pointer transition-all">
+                            <option value="Makeup">Makeup</option>
+                            <option value="Headphones">Headphones</option>
+                            <option value="Kitchen">Kitchen</option>
+                            <option value="Men">Men</option>
+                            <option value="Skincare">Skincare</option>
+                            <option value="Camera">Camera</option>
+                            <option value="Cycling">Cycling</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Brand</label>
+                    <div class="relative">
+                        <select name="brand" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none appearance-none cursor-pointer transition-all">
+                            <option value="Zara">Zara</option>
+                            <option value="Samsung">Samsung</option>
+                            <option value="Nike">Nike</option>
+                            <option value="Lenovo">Lenovo</option>
+                            <option value="Apple">Apple</option>
+                            <option value="H&M">H&M</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Location</label>
+                    <div class="relative">
+                        <select name="location" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none appearance-none cursor-pointer transition-all">
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Chennai">Chennai</option>
+                            <option value="Bangalore">Bangalore</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Device Used</label>
+                    <div class="relative">
+                        <select name="device" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none appearance-none cursor-pointer transition-all">
+                            <option value="Tablet">Tablet</option>
+                            <option value="Web">Web</option>
+                            <option value="Mobile App">Mobile App</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Payment Method</label>
+                    <div class="relative">
+                        <select name="payment_method" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none appearance-none cursor-pointer transition-all">
+                            <option value="UPI">UPI</option>
+                            <option value="Cash on Delivery">Cash on Delivery</option>
+                            <option value="Debit Card">Debit Card</option>
+                            <option value="Credit Card">Credit Card</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Original Price ($)</label>
+                    <input type="number" step="0.01" name="price" required value="5464.82" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Discount (%)</label>
+                    <input type="number" step="0.01" name="discount" required value="15.70" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Final Price ($)</label>
+                    <input type="number" step="0.01" name="final_price" required value="4606.69" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Product Rating (1.0 - 5.0)</label>
+                    <input type="number" step="0.1" name="rating" required value="3.1" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Review Count</label>
+                    <input type="number" name="review_count" required value="5" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Stock Units Available</label>
+                    <input type="number" name="stock" required value="453" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Seller Rating (1.0 - 5.0)</label>
+                    <input type="number" step="0.1" name="seller_rating" required value="2.7" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Shipping Time (Days)</label>
+                    <input type="number" name="shipping_time_days" required value="4" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:border-coral-500 focus:ring-1 focus:ring-coral-500 focus:outline-none transition-all">
+                </div>
+
+                <div class="sm:col-span-2 lg:col-span-3 pt-4">
+                    <button type="submit" class="w-full bg-coral-500 hover:bg-coral-600 text-zinc-950 font-bold py-4 rounded-xl shadow-lg shadow-coral-500/10 hover:shadow-coral-500/20 active:scale-[0.99] transition-all tracking-wide text-sm uppercase">
+                        Analisis Probabilitas Klasifikasi
+                    </button>
+                </div>
+            </form>
+
+            <div id="resultCard" class="hidden mt-8 p-6 rounded-xl border transition-all duration-300">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Hasil Keputusan AI:</span>
+                        <h3 id="resultText" class="text-2xl font-black mt-1 tracking-tight"></h3>
+                        <p id="probabilityText" class="text-sm text-zinc-400 mt-1"></p>
+                    </div>
+                    <div id="resultBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-zinc-900 bg-zinc-950 py-8 text-center text-xs text-zinc-600">
+        &copy; 2026 Amazon E-Commerce Analytics System. Integrated with Flask & Gradient Boosting Framework.
+    </footer>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const formPayload = {};
+            formData.forEach((value, key) => formPayload[key] = value);
+
+            const resultCard = document.getElementById('resultCard');
+            const resultText = document.getElementById('resultText');
+            const probabilityText = document.getElementById('probabilityText');
+            const resultBadge = document.getElementById('resultBadge');
+
+            axios.post('/predict', formPayload)
+                .then(function (response) {
+                    const data = response.data;
+                    if(data.success) {
+                        resultCard.classList.remove('hidden');
+                        resultText.innerText = data.result;
+                        probabilityText.innerText = data.probability ? `Tingkat keyakinan model: ${data.probability}%` : '';
+
+                        if(data.prediction === 1) {
+                            resultCard.className = "mt-8 p-6 rounded-xl border border-red-900/50 bg-red-950/20 animate-fade-in";
+                            resultText.className = "text-2xl font-black text-red-400 tracking-tight";
+                            resultBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase bg-red-950 text-red-400 border border-red-800";
+                            resultBadge.innerText = "High Risk";
+                        } else {
+                            resultCard.className = "mt-8 p-6 rounded-xl border border-yellow-600/30 bg-yellow-500/5 animate-fade-in";
+                            resultText.className = "text-2xl font-black text-yellow-400 tracking-tight";
+                            resultBadge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase bg-yellow-950 text-yellow-400 border border-yellow-700/50";
+                            resultBadge.innerText = "Low Risk";
+                        }
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                })
+                .catch(function (error) {
+                    resultCard.classList.remove('hidden');
+                    resultCard.className = "mt-8 p-6 rounded-xl border border-zinc-800 bg-zinc-900 text-red-400";
+                    resultText.innerText = "Terjadi kesalahan sistem.";
+                    probabilityText.innerText = error.response ? error.response.data.error : error.message;
+                    resultBadge.className = "hidden";
+                });
+        });
+    </script>
+</body>
+</html>
