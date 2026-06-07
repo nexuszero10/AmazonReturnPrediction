@@ -8,9 +8,9 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Jalur file pkl Anda
-MODEL_PATH = 'gradient_boosting_classifier_model.pkl'
-SCALER_PATH = 'numerical_scaler.pkl'
-ENCODER_PATH = 'categorical_encoder.pkl'
+MODEL_PATH = 'model/gradient_boosting_classifier_model.pkl'
+SCALER_PATH = 'model/numerical_scaler.pkl'
+ENCODER_PATH = 'model/categorical_encoder.pkl'
 
 # Load model dan tools preprocessing
 model = joblib.load(MODEL_PATH) if os.path.exists(MODEL_PATH) else None
